@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ICO dApp</title>
+</head>
+<body>
+    <h1>ICO dApp</h1>
+    <p>Current Token Price: <span id="tokenPrice"></span> ETH</p>
+    <p>Your Balance: <span id="userBalance"></span> Tokens</p>
+    <input type="number" id="ethAmount" placeholder="Amount in ETH">
+    <button onclick="buyTokens()">Buy Tokens</button>
+
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.5.2/dist/web3.min.js"></script>
+    <script>
+  
+        const web3 = new Web3(Web3.givenProvider);
+
+       
+        const contractAddress = "0x5B38Da6a701c568545dCfcB03FcB875f56beddC4";
+        const contractABI = [
+	{
+		"inputs": [
+			{
+				"internalType": "contract IERC20",
+				"name": "_token",
+				"type": "address"
+			},
+			{
+				"internalType": "uint256",
+				"name": "_price",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "nonpayable",
+		"type": "constructor"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "previousOwner",
+				"type": "address"
+			},
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "OwnershipTransferred",
+		"type": "event"
+	},
+	{
+		"anonymous": false,
+		"inputs": [
+			{
+				"indexed": true,
+				"internalType": "address",
+				"name": "buyer",
+				"type": "address"
+			},
+			{
+				"indexed": false,
+				"internalType": "uint256",
+				"name": "amount",
+				"type": "uint256"
+			}
+		],
+		"name": "TokensPurchased",
+		"type": "event"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "uint256",
+				"name": "_numTokens",
+				"type": "uint256"
+			}
+		],
+		"name": "buyTokens",
+		"outputs": [],
+		"stateMutability": "payable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "endICO",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "owner",
+		"outputs": [
+			{
+				"internalType": "address",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "renounceOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "token",
+		"outputs": [
+			{
+				"internalType": "contract IERC20",
+				"name": "",
+				"type": "address"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "tokenPrice",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "tokensSold",
+		"outputs": [
+			{
+				"internalType": "uint256",
+				"name": "",
+				"type": "uint256"
+			}
+		],
+		"stateMutability": "view",
+		"type": "function"
+	},
+	{
+		"inputs": [
+			{
+				"internalType": "address",
+				"name": "newOwner",
+				"type": "address"
+			}
+		],
+		"name": "transferOwnership",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"inputs": [],
+		"name": "withdrawEther",
+		"outputs": [],
+		"stateMutability": "nonpayable",
+		"type": "function"
+	},
+	{
+		"stateMutability": "payable",
+		"type": "receive"
+	}
+]; 
+
+        const contract = new web3.eth.Contract(contractABI, contractAddress);
+
+        async function getTokenPrice() {
+            const tokenPrice = await contract.methods.getTokenPrice().call();
+            document.getElementById("tokenPrice").textContent = web3.utils.fromWei(tokenPrice, "ether");
+        }
+
+        async function getUserBalance() {
+            const userAddress = (await web3.eth.getAccounts())[0];
+            const balance = await contract.methods.balanceOf(userAddress).call();
+            document.getElementById("userBalance").textContent = balance;
+        }
+
+        async function buyTokens() {
+            const ethAmount = document.getElementById("ethAmount").value;
+            const userAddress = (await web3.eth.getAccounts())[0];
+
+            await contract.methods.buyTokens().send({ from: userAddress, value: web3.utils.toWei(ethAmount, "ether") });
+
+            getUserBalance();
+        }
+
+        async function init() {
+            await getTokenPrice();
+            getUserBalance();
+        }
+
+        init();
+    </script>
+</body>
+</html>
